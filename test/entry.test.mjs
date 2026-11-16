@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { parseEntry } from "../skills/trodden/scripts/lib/entry.mjs";
 
 const structured = readFileSync(
-  new URL("../skills/trodden/library/core/logging/structured.md", import.meta.url),
+  new URL("./fixtures/structured-entry.md", import.meta.url),
   "utf8",
 );
 
