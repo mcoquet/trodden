@@ -1,12 +1,14 @@
 ---
 type: variant
-concern: logging
-id: logging/structured
+id: core/logging/structured
+summary: Emit logs as machine-parseable events with consistent fields.
 sources: [owasp-logging, otel-semconv, 12factor-logs]
 ---
 # Structured logging
 
-Use when: services whose logs are aggregated and queried.
+## Use when
+
+Services whose logs are aggregated and queried.
 
 ## Rules
 
@@ -32,4 +34,5 @@ logger.info("order.created", { order_id: id, amount: total })
 
 ## Related
 
-requires: [correlation-ids] · alternative: [logging/audit-trail]
+- requires: core/tracing/correlation-ids (planned)
+- alternative: core/logging/audit-trail (planned)

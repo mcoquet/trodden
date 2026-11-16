@@ -1,4 +1,4 @@
-# Citation registry. Every `sources:` id in kb/ must resolve here.
+# Source registry. Every source id used in an entry must resolve here.
 
 owasp-logging:
   title: OWASP Logging Cheat Sheet
@@ -11,7 +11,3 @@ otel-semconv:
 12factor-logs:
   title: "The Twelve-Factor App: XI. Logs"
   url: https://12factor.net/logs
-
-pino-docs:
-  title: pino documentation
-  url: https://getpino.io/
