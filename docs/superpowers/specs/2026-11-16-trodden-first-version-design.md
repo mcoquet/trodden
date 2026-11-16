@@ -211,7 +211,7 @@ A small script in `evals/`, run by hand, not in CI. It answers two questions: do
 
 The first version covers three to five tasks on one or two models, through one harness (Claude Code in headless mode), behind an interface that lets other harnesses be added. It informs the format; it is not yet a gate on shipping an entry.
 
-The build delivers the runner, tested against a stub harness so the tests need no credentials. A real run needs paid model access and is a separate step (see Open questions).
+The build delivers the runner, tested against a stub harness so the tests need no credentials. A real run needs paid model access and is the last step (see Decided after review).
 
 ### Build order
 
@@ -266,10 +266,11 @@ Not decided by Miguel; correct any of these.
 - The eval's task fixtures, judge prompt and results layout.
 - Which variants are written for error handling and configuration, and their sources.
 
-## Open questions for Miguel
+## Decided after review
 
-- **The real eval run.** Whether a real run is part of the first version, and with whose model access and on which models. Proposed: yes, as the last step, on two Claude models of different sizes with a stronger one as judge, using a key Miguel provides. If adherence does not improve with the skill, the format or `SKILL.md` is revised before more entries are written.
-- **Licence.** The repo has none. Code and content may want different ones (for example MIT for the script, CC BY for the library). This does not block the plan but should be settled before the repo is promoted.
+- **The real eval run** is in scope, as the last step: two Claude models of different sizes, with a stronger one as judge, using a key Miguel provides. If adherence does not improve with the skill, the format or `SKILL.md` is revised before more entries are written. The run waits on the key; nothing else does.
+- **Licence:** MIT for the script and tooling, CC BY 4.0 for the library entries. The repo gets a `LICENSE` file for the code and a `LICENSE` file inside `skills/trodden/library/` for the entries, and the README states both.
+- **Source text is never copied.** Entries state rules in their own words and cite the source. Some sources are share-alike licensed (the OWASP cheat sheets are believed to be; confirm before publishing).
 
 ## Proposed domain model
 
