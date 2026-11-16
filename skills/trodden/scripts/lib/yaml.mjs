@@ -46,12 +46,12 @@ export function parseYamlSubset(text, opts = {}) {
     if (indented) {
       if (parent === null) throw new YamlSubsetError("unexpected indentation", line);
       if (rest === "") throw new YamlSubsetError("only one level of nesting is allowed", line);
-      if (key in parent) throw new YamlSubsetError(`duplicate key "${key}"`, line);
+      if (Object.hasOwn(parent, key)) throw new YamlSubsetError(`duplicate key "${key}"`, line);
       parent[key] = parseValue(rest);
       return;
     }
 
-    if (key in result) throw new YamlSubsetError(`duplicate key "${key}"`, line);
+    if (Object.hasOwn(result, key)) throw new YamlSubsetError(`duplicate key "${key}"`, line);
     if (rest === "") {
       if (!nested) throw new YamlSubsetError(`"${key}" has no value`, line);
       parent = result[key] = {};

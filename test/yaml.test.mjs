@@ -56,3 +56,10 @@ test("rejects a duplicate key", () => failsAt("a: 1\na: 2", 2));
 test("rejects a line with no colon", () => failsAt("just text", 1));
 test("rejects nesting unless asked", () => failsAt("x:\n  title: T", 1));
 test("rejects two levels of nesting", () => failsAt("x:\n  y:\n    z: 1", 2, { nested: true }));
+
+test("accepts keys that are also object property names", () => {
+  assert.deepEqual(parseYamlSubset("constructor: a\ntoString: b"), {
+    constructor: "a",
+    toString: "b",
+  });
+});
