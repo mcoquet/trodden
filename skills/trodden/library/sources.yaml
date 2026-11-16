@@ -11,3 +11,23 @@ otel-semconv:
 12factor-logs:
   title: "The Twelve-Factor App: XI. Logs"
   url: https://12factor.net/logs
+
+aws-retries:
+  title: "Amazon Builders' Library: Timeouts, retries, and backoff with jitter"
+  url: https://aws.amazon.com/builders-library/timeouts-retries-and-backoff-with-jitter/
+
+sre-cascading:
+  title: "Google SRE Book: Addressing Cascading Failures"
+  url: https://sre.google/sre-book/addressing-cascading-failures/
+
+azure-retry:
+  title: "Azure Architecture Center: Retry pattern"
+  url: https://learn.microsoft.com/en-us/azure/architecture/patterns/retry
+
+12factor-config:
+  title: "The Twelve-Factor App: III. Config"
+  url: https://12factor.net/config
+
+owasp-secrets:
+  title: OWASP Secrets Management Cheat Sheet
+  url: https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html

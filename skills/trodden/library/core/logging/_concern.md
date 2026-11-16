@@ -22,4 +22,4 @@ Metrics and distributed tracing, which belong to the `observability` concern.
 
 ## Related
 
-- see also: core/errors (planned)
+- see also: core/errors

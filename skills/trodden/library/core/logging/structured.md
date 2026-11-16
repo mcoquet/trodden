@@ -12,10 +12,12 @@ Services whose logs are aggregated and queried.
 
 ## Rules
 
-- MUST emit machine-parseable structured events (JSON, one event per line). [otel-semconv]
+- MUST emit events in a structured, machine-parseable format, not free text. [owasp-logging]
 - MUST write the event stream to stdout and leave routing and storage to the environment. [12factor-logs]
 - MUST NOT log secrets, session tokens, passwords or personal data; mask or omit them. [owasp-logging]
-- MUST include a timestamp, severity and a correlation or trace identifier on every event. [otel-semconv]
+- MUST record on every event when it happened, where, who was involved and what happened. [owasp-logging]
+- SHOULD include a severity and an identifier that links all events of one request. [owasp-logging]
+- SHOULD use JSON with one event per line.
 - SHOULD use OpenTelemetry semantic convention names for common fields (`trace_id`, `service.name`). [otel-semconv]
 - SHOULD name the event and pass values as fields (`order.created`) rather than interpolating them into a message string.
 - SHOULD log an error once, where it is handled, not at every layer it passes through.
