@@ -1,0 +1,6 @@
+{
+  "id": "add-retry",
+  "prompt": "Calls to the payment provider sometimes fail for a moment and then work again. Make order creation cope with that.",
+  "fixture": "orders-service",
+  "variants": ["core/errors/retry-backoff"]
+}

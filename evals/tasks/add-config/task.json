@@ -1,0 +1,6 @@
+{
+  "id": "add-config",
+  "prompt": "We need to run this service in staging and in production with different settings. Make that possible.",
+  "fixture": "orders-service",
+  "variants": ["core/config/environment"]
+}
