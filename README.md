@@ -1,0 +1,77 @@
+# trodden
+
+**A sourced knowledge base of cross-cutting software engineering practices, built to ground coding agents in well-trodden paths.**
+
+> ESLint for architecture decisions, readable by any coding agent.
+
+Ask five LLMs to "add logging" and you get five different answers. The best practices already exist (OWASP, OpenTelemetry, The Twelve-Factor App, cloud design pattern catalogs), but they aren't in the model's context when it writes code. `trodden` puts them there in small, composable pieces, so results are the same across models and harnesses.
+
+## Principles
+
+- **Cross-cutting, not frameworks.** Logging, error handling, configuration, auth, observability, caching, idempotency.
+- **Sourced.** Every `MUST` rule traces back to an established reference. No single model's opinion.
+- **Variants, not dogma.** Each concern offers named variants with clear "use when" criteria. Your project picks one, and the agent follows it.
+- **Composable.** Install only the concerns, variants, packs and languages you need.
+- **Language-neutral core, optional overlays.** Rules are universal. Language overlays (`*.js.md`) pin libraries and idioms, which is where models diverge most.
+- **Agent-first, human-readable.** Plain markdown with YAML frontmatter ([Open Knowledge Format](https://github.com/GoogleCloudPlatform/open-knowledge-format)), packaged as [Agent Skills](https://agentskills.io).
+- **Measured.** A module ships only with an eval showing that different models produce the same structure.
+
+## How it works
+
+```
+kb/ (OKF markdown, source of truth)
+ │
+ ├─ build ──▶ SKILL.md per project   (Claude Code, Codex, Gemini CLI, Copilot…)
+ ├─ build ──▶ llms.txt + docs site   (humans and web-reading agents)
+ └─ scripts ─▶ select · check · inject
+```
+
+1. **Index:** a one-line entry per concept is available to the agent (in the skill or injected per message by a hook).
+2. **Select:** a deterministic script picks the variant from your project manifest and resolves its dependencies.
+3. **Expand:** the agent reads the full variant file before writing code.
+4. **Check:** a lint-style script validates the output against the variant's rules, both in the agent loop and in CI.
+
+No server required. An MCP or middleware layer can sit on top later without changing the knowledge base.
+
+## Project manifest
+
+Each consuming project declares what it uses ([example](examples/patterns.yaml)):
+
+```yaml
+languages: [js]
+packs: [core]
+concerns:
+  logging: [structured]
+```
+
+## Repository layout
+
+```
+kb/                  knowledge base (OKF)
+  <concern>/
+    _concern.md      overview, forces, variant decision table
+    <variant>.md     language-neutral rules
+    <variant>.js.md  JavaScript overlay
+sources/registry.yaml  citation registry
+examples/            example project manifests
+scripts/             select, check, build, inject (planned)
+evals/               cross-model convergence evals (planned)
+```
+
+## Entry format
+
+Every variant file has the same sections: frontmatter (`type`, `concern`, `id`, `sources`), **Use when**, **Rules** (MUST/SHOULD), **Example**, **Avoid**, **Related**. See [`kb/logging/structured.md`](kb/logging/structured.md) for a full example.
+
+## Roadmap
+
+- [x] Repo scaffold and entry format
+- [ ] Seed concerns: logging, error handling / retries, configuration
+- [ ] `select` and `check` scripts
+- [ ] Skill builder and per-message index injection hook
+- [ ] Baseline evals (no guidance vs. trodden) across models
+- [ ] Core wave: tracing and metrics, auth, validation, caching, idempotency
+- [ ] Domain packs (e.g. healthcare: PHI-safe logging, FHIR AuditEvent)
+
+## Status
+
+Early design. Expect the format to change while the seed concerns are written.

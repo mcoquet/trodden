@@ -1,0 +1,13 @@
+# Example project manifest. Place at the root of a consuming project.
+# The installer pulls in only these concerns and variants, plus their
+# `requires` dependencies, and warns on `conflicts-with`.
+
+languages: [js]
+packs: [core]
+
+concerns:
+  logging: [structured]
+  # errors: [retry-backoff, circuit-breaker]   # planned
+  # config: [env-12factor]                     # planned
+
+exclude: []
