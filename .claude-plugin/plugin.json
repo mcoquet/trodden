@@ -1,0 +1,10 @@
+{
+  "name": "trodden",
+  "version": "0.1.0",
+  "description": "Grounds coding agents in sourced, cross-cutting engineering practices: a skill and a query script over a small library.",
+  "author": {
+    "name": "Miguel Coquet"
+  },
+  "repository": "https://github.com/mcoquet/trodden",
+  "license": "MIT"
+}

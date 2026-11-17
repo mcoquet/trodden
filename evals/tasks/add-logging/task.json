@@ -1,0 +1,6 @@
+{
+  "id": "add-logging",
+  "prompt": "Add logging to this service so we can debug failed orders in production.",
+  "fixture": "orders-service",
+  "variants": ["core/logging/structured"]
+}

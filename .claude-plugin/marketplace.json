@@ -1,0 +1,14 @@
+{
+  "name": "trodden",
+  "description": "The trodden plugin, served from its own repository",
+  "owner": {
+    "name": "Miguel Coquet"
+  },
+  "plugins": [
+    {
+      "name": "trodden",
+      "source": "./",
+      "description": "Grounds coding agents in sourced, cross-cutting engineering practices"
+    }
+  ]
+}

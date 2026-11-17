@@ -1,81 +1,113 @@
 # trodden
 
-**A sourced knowledge base of cross-cutting software engineering practices, built to ground coding agents in well-trodden paths.**
+**A sourced library of cross-cutting software engineering practices, and a skill that grounds coding agents in it.**
 
 > ESLint for architecture decisions, readable by any coding agent.
 
-Ask five LLMs to "add logging" and you get five different answers. The best practices already exist (OWASP, OpenTelemetry, The Twelve-Factor App, cloud design pattern catalogs), but they aren't in the model's context when it writes code. `trodden` puts them there in small, composable pieces, so results are the same across models and harnesses.
-
-## Principles
-
-- **Cross-cutting, not frameworks.** Logging, error handling, configuration, auth, observability, caching, idempotency.
-- **Sourced.** Every `MUST` rule traces back to an established reference. No single model's opinion.
-- **Variants, not dogma.** Each concern offers named variants with clear "use when" criteria. Your project picks one, and the agent follows it.
-- **Composable.** Install only the concerns, variants, packs and languages you need.
-- **Language-neutral core, optional overlays.** Rules are universal. Language overlays (`*.js.md`) pin libraries and idioms, which is where models diverge most.
-- **Agent-first, human-readable.** Plain markdown with YAML frontmatter ([Open Knowledge Format](https://github.com/GoogleCloudPlatform/open-knowledge-format)), packaged as [Agent Skills](https://agentskills.io).
-- **Measured.** A module ships only with an eval showing that different models produce the same structure.
+Ask five coding agents to "add logging" and you get five different answers. The established practice exists (OWASP, OpenTelemetry, The Twelve-Factor App), but it is not in the agent's context when it writes code. trodden puts it there, so that whatever the model or harness, the agent's output follows the same sourced rules.
 
 ## How it works
 
-```
-kb/ (OKF markdown, source of truth)
- │
- ├─ build ──▶ SKILL.md per project   (Claude Code, Codex, Gemini CLI, Copilot…)
- ├─ build ──▶ llms.txt + docs site   (humans and web-reading agents)
- └─ scripts ─▶ select · check · inject
-```
+trodden is three things in one folder, [`skills/trodden/`](skills/trodden/):
 
-1. **Index:** a one-line entry per concept is available to the agent (in the skill or injected per message by a hook).
-2. **Select:** a deterministic script picks the variant from your project manifest and resolves its dependencies.
-3. **Expand:** the agent reads the full variant file before writing code.
-4. **Check:** a lint-style script validates the output against the variant's rules, both in the agent loop and in CI.
+- **A library** of small markdown entries. Each states a practice as rules, and every requirement cites a reputable source.
+- **A query script** that lists and fetches entries, so the agent gets exactly the right ones without browsing files.
+- **A skill** that tells the agent when to look something up and what to do with the answer.
 
-No server required. An MCP or middleware layer can sit on top later without changing the knowledge base.
+The agent works in three steps:
 
-## Project manifest
+1. **Index:** it lists what the library covers, one line per entry.
+2. **Fetch:** it fetches the entries that apply to the task, with whatever they require and the sources behind them.
+3. **Apply:** it follows the rules, using the language and libraries the project already has.
 
-Each consuming project declares what it uses ([example](examples/patterns.yaml)):
+Nothing is hosted and nothing is fetched over the network. The script is plain Node (version 20 or later) with no dependencies.
 
-```yaml
-languages: [js]
-packs: [core]
-concerns:
-  logging: [structured]
-```
+## Using it
 
-## Repository layout
+**Claude Code**, version 2.1.275 or later:
 
 ```
-kb/                  knowledge base (OKF)
-  <concern>/
-    _concern.md      overview, forces, variant decision table
-    <variant>.md     language-neutral rules
-    <variant>.js.md  JavaScript overlay
-sources/registry.yaml  citation registry
-examples/            example project manifests
-scripts/             select, check, build, inject (planned)
-evals/               cross-model convergence evals (planned)
+/plugin install trodden --marketplace mcoquet/trodden
 ```
 
-## Entry format
+**Any other agent that supports skills:** copy the `skills/trodden/` folder into the place your agent reads skills from. The folder is self-contained.
 
-Every variant file has the same sections: frontmatter (`type`, `concern`, `id`, `sources`), **Use when**, **Rules** (MUST/SHOULD), **Example**, **Avoid**, **Related**. See [`kb/logging/structured.md`](kb/logging/structured.md) for a full example.
+The commands, run from the skill folder:
+
+```
+node scripts/trodden.mjs list                           # the index
+node scripts/trodden.mjs get core/logging               # a concern and its variants
+node scripts/trodden.mjs get core/logging/structured    # a variant, its rules and sources
+node scripts/trodden.mjs lint --format text             # check a library against the format
+node scripts/trodden.mjs spec                           # print the entry format
+```
+
+Add `--library <path>` to any of them to use a library of your own.
+
+## The library
+
+- An **area** is a top-level group. `core` holds generic, cross-cutting practice.
+- A **concern** is a topic every project has to deal with, such as logging. It states the forces at play.
+- A **variant** is one established way of addressing a concern: when it applies, and the rules for doing it well.
+
+A rule is a `MUST` (a requirement, with a cited source) or a `SHOULD` (a strong recommendation). Entries name no language or library.
+
+The first version covers:
+
+| Concern | Variant |
+|---|---|
+| `core/logging` | `core/logging/structured` |
+| `core/errors` | `core/errors/retry-backoff` |
+| `core/config` | `core/config/environment` |
+
+An entry belongs in the library only if it is **cross-cutting** (not framework documentation), **sourced**, **actionable** (rules an agent can follow and a reviewer can check) and **established**. Where reputable sources support different approaches, each is its own variant; the project chooses.
+
+The format is defined in [`skills/trodden/references/format.md`](skills/trodden/references/format.md). The same format and script work for a private library, on any subject.
+
+## Contributing an entry
+
+Read [`AGENTS.md`](AGENTS.md), write the entry, and run the linter:
+
+```
+node skills/trodden/scripts/trodden.mjs lint --format text
+```
+
+The linter checks form: sections, citations, references. Whether a practice deserves an entry is an editorial decision.
+
+## Does it work?
+
+[`evals/`](evals/README.md) holds a small eval that runs tasks with and without the skill and has a judge model score the result against the entries' `MUST` rules. No results are published yet.
 
 ## Roadmap
 
-- [x] Repo scaffold and entry format
-- [ ] Seed concerns: logging, error handling / retries, configuration
-- [ ] `select` and `check` scripts
-- [ ] Skill builder and per-message index injection hook
-- [ ] Baseline evals (no guidance vs. trodden) across models
-- [ ] Packs: base (`core`, `web-api`), domain (`healthcare`, `fintech`) and private team packs
-- [ ] CLI: `npx trodden add <variant|pack:name>` (copy-in, pinned, diff against upstream) and `npx trodden lint`
-- [ ] Previews: per-variant before/after outputs, tabbed per model, generated by the eval runner and stamped with model version and date
-- [ ] Leaderboard on the homepage: baseline adherence, adherence with trodden, lift, consistency across runs, cost per compliant result; per-concern breakdown, published methodology and a held-out prompt set
-- [ ] Core wave: tracing and metrics, auth, validation, caching, idempotency
-- [ ] Domain packs (e.g. healthcare: PHI-safe logging, FHIR AuditEvent)
+**First version**
 
-## Status
+- [x] Entry format and linter
+- [x] Query script: `list`, `get`, `lint`, `spec`
+- [x] The skill, packaged as a Claude Code plugin
+- [x] Seed concerns: logging, error handling and retries, configuration
+- [x] Eval runner
+- [ ] First eval results
 
-Early design. Expect the format to change while the seed concerns are written.
+**Later**, in rough order of when each becomes useful:
+
+- A manifest in the consuming project that narrows the library and records the variants it chose
+- Packs, and copying a selection into a repo, pinned and diffable against upstream
+- Language overlays, only if evals show agents need the library pinned per language
+- Other ways in: an npm package, an MCP server, a docs site and `llms.txt`
+- Evals as a gate on new entries, per-model previews and a leaderboard
+- More areas (web APIs, regulated domains) and private libraries queried together
+
+Material parked from earlier notes is in [`docs/ideas/`](docs/ideas/README.md). The design is in [`docs/superpowers/specs/`](docs/superpowers/specs/2026-11-16-trodden-first-version-design.md).
+
+## Development
+
+```
+npm test
+```
+
+There is nothing to install. See [`CLAUDE.md`](CLAUDE.md) for the other commands.
+
+## Licence
+
+The script and tooling are under the [MIT licence](LICENSE). The library entries in `skills/trodden/library/` are under [CC BY 4.0](skills/trodden/library/LICENSE).
