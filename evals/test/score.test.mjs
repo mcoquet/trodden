@@ -69,3 +69,13 @@ test("the summary renders as a markdown table with percentages", () => {
   assert.match(text, /\| t1 \| m1 \| 75% \| 25% \| \+50 \| 100% \|/);
   assert.match(text, /\| Overall \|/);
 });
+
+test("counts cases the judge could not score", () => {
+  const summary = summarise([
+    aCase({ verdicts: verdicts("error", "error") }),
+    aCase({ run: 2, verdicts: verdicts("pass", "error") }),
+    aCase({ run: 3, verdicts: verdicts("pass") }),
+  ]);
+  assert.equal(summary.overall.judgeErrors, 1);
+  assert.match(renderSummary(summary), /1 could not be judged/);
+});

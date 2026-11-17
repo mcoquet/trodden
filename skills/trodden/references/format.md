@@ -144,7 +144,7 @@ The linter checks form only. Whether a practice deserves an entry is an editoria
 type: variant
 id: core/logging/structured
 summary: Emit logs as machine-parseable events with consistent fields.
-sources: [owasp-logging, otel-semconv]
+sources: [owasp-logging]
 ---
 # Structured logging
 
@@ -155,7 +155,7 @@ Services whose logs are aggregated and queried.
 ## Rules
 
 - MUST NOT log secrets, session tokens, passwords or personal data; mask or omit them. [owasp-logging]
-- MUST include a timestamp, severity and a correlation or trace identifier on every event. [otel-semconv]
+- MUST record on every event when it happened, where, who was involved and what happened. [owasp-logging]
 - SHOULD log an error once, where it is handled, not at every layer it passes through.
 
 ## Example

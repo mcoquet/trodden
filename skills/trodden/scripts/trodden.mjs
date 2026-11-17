@@ -26,6 +26,11 @@ Options:
 `;
 
 class UsageError extends Error {}
+class BrokenEntryError extends Error {
+  constructor(path) {
+    super(`${path} cannot be loaded: run the lint command to see why`);
+  }
+}
 
 function parseArgs(argv) {
   const args = { positional: [], json: false, help: false, library: null, format: null };
@@ -65,8 +70,19 @@ function runGet(args, io) {
   const ids = args.positional;
   if (ids.length === 0) throw new UsageError("get needs at least one id");
   const lib = loadLibrary(args.library ?? DEFAULT_LIBRARY);
+  for (const id of ids) {
+    const broken = lib.entries.has(id) ? null : lib.files.find((file) => file.expectedId === id);
+    if (broken) throw new BrokenEntryError(broken.path);
+  }
   const resolved = resolve(lib, ids);
   warnSkipped(lib, io);
+  for (const entry of resolved.entries) {
+    for (const rel of entry.relationships) {
+      if (rel.kind === "requires" && !rel.planned && rel.target !== null && !lib.entries.has(rel.target)) {
+        io.stderr.write(`${entry.id} requires ${rel.target}, which could not be loaded: run lint\n`);
+      }
+    }
+  }
   if (args.json) {
     const entries = resolved.entries.map((entry) => ({
       id: entry.id,
@@ -117,7 +133,7 @@ export function main(argv, io) {
       io.stderr.write(`${err.message}\n\n${USAGE}`);
     } else if (err instanceof UnknownIdError) {
       io.stderr.write(`${err.message}\nRun the list command to see the ids that exist.\n`);
-    } else if (err instanceof LibraryNotFoundError) {
+    } else if (err instanceof LibraryNotFoundError || err instanceof BrokenEntryError) {
       io.stderr.write(`${err.message}\n`);
     } else {
       throw err;

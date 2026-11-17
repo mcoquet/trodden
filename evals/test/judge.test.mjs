@@ -67,3 +67,9 @@ test("treats a failing judge call as an unparseable reply", async () => {
   assert.equal(calls, 2);
   assert.deepEqual(result.map((v) => v.verdict), ["error", "error"]);
 });
+
+test("accepts an index given as a string", async () => {
+  const { complete } = replies('[{"index":"1","verdict":"pass","reason":"a"},{"index":"2","verdict":"fail","reason":"b"}]');
+  const result = await judge({ rules, diff: "D", model: "m", complete });
+  assert.deepEqual(result.map((v) => v.verdict), ["pass", "fail"]);
+});

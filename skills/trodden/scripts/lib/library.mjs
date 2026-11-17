@@ -64,6 +64,7 @@ function isUsable(entry) {
     entry.frontmatter !== null &&
     entry.expectedId !== null &&
     entry.id === entry.expectedId &&
+    typeof entry.frontmatter.summary === "string" &&
     (entry.type === "concern" || entry.type === "variant")
   );
 }

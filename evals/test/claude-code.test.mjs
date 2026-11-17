@@ -1,9 +1,10 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { existsSync, writeFileSync, appendFileSync } from "node:fs";
+import { existsSync, mkdirSync, writeFileSync, appendFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { claudeCodeHarness, parseEvents } from "../lib/claude-code.mjs";
+import { claudeCodeHarness, parseEvents, runCommand } from "../lib/claude-code.mjs";
 
 const evalsDir = fileURLToPath(new URL("..", import.meta.url));
 const options = {
@@ -58,4 +59,40 @@ test("rejects a task whose fixture does not exist", async () => {
 
 test("parses an event stream, skipping lines that are not JSON", () => {
   assert.deepEqual(parseEvents('{"type":"a"}\nnot json\n\n{"type":"b"}\n'), [{ type: "a" }, { type: "b" }]);
+});
+
+test("sees a change the agent committed itself", async () => {
+  const runAgent = async ({ dir }) => {
+    writeFileSync(join(dir, "logger.js"), "export const x = 1;\n");
+    execFileSync("git", ["-c", "user.name=a", "-c", "user.email=a@example.invalid", "-c", "commit.gpgsign=false", "add", "--all"], { cwd: dir });
+    execFileSync("git", ["-c", "user.name=a", "-c", "user.email=a@example.invalid", "-c", "commit.gpgsign=false", "commit", "--quiet", "-m", "x"], { cwd: dir });
+    return "";
+  };
+  const { diff } = await claudeCodeHarness({ ...options, runAgent }).run({ task, model: "m", withSkill: false });
+  assert.match(diff, /logger\.js/);
+});
+
+test("leaves installed packages out of the diff", async () => {
+  const runAgent = async ({ dir }) => {
+    mkdirSync(join(dir, "node_modules/pkg"), { recursive: true });
+    writeFileSync(join(dir, "node_modules/pkg/index.js"), "x\n");
+    appendFileSync(join(dir, "orders.js"), "// changed\n");
+    return "";
+  };
+  const { diff } = await claudeCodeHarness({ ...options, runAgent }).run({ task, model: "m", withSkill: false });
+  assert.match(diff, /\+\/\/ changed/);
+  assert.ok(!diff.includes("node_modules"));
+});
+
+test("refuses a diff too large to judge", async () => {
+  const runAgent = async ({ dir }) => {
+    writeFileSync(join(dir, "big.txt"), "line\n".repeat(60000));
+    return "";
+  };
+  await assert.rejects(claudeCodeHarness({ ...options, runAgent }).run({ task, model: "m", withSkill: false }), /too large/);
+});
+
+test("a command that exits without reading its input fails the call, not the process", async () => {
+  await assert.rejects(runCommand("false", [], { input: "x".repeat(1_000_000), timeout: 10_000 }), /false failed/);
+  await assert.rejects(runCommand("no-such-command-xyz", [], { input: "x", timeout: 10_000 }), /failed/);
 });

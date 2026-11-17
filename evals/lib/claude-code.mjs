@@ -16,16 +16,22 @@ import { join } from "node:path";
 const AGENT_TIMEOUT_MS = 15 * 60 * 1000;
 const JUDGE_TIMEOUT_MS = 5 * 60 * 1000;
 const MAX_OUTPUT = 64 * 1024 * 1024;
+const MAX_DIFF_CHARS = 200_000;
 
-function claude(args, { cwd, input, timeout }) {
+// Runs a command, feeding it `input`, and resolves with what it printed.
+export function runCommand(command, args, { cwd, input, timeout }) {
   return new Promise((resolve, reject) => {
-    const child = execFile("claude", args, { cwd, timeout, maxBuffer: MAX_OUTPUT }, (err, stdout, stderr) => {
-      if (err) reject(new Error(`claude failed: ${err.message}${stderr ? `\n${stderr.slice(-2000)}` : ""}`));
+    const child = execFile(command, args, { cwd, timeout, maxBuffer: MAX_OUTPUT }, (err, stdout, stderr) => {
+      if (err) reject(new Error(`${command} failed: ${err.message}${stderr ? `\n${stderr.slice(-2000)}` : ""}`));
       else resolve(stdout);
     });
-    child.stdin.end(input ?? "");
+    // A command that exits before reading its input must fail this call, not the process.
+    child.stdin?.on("error", () => {});
+    child.stdin?.end(input ?? "");
   });
 }
+
+const claude = (args, options) => runCommand("claude", args, options);
 
 function runClaude({ dir, prompt, model }) {
   const args = [
@@ -77,14 +83,21 @@ export function claudeCodeHarness({ skillDir, fixturesDir, runAgent = runClaude 
       cpSync(fixture, dir, { recursive: true });
       git(dir, "init", "--quiet");
       // The skill is part of the setup, not of the agent's change.
-      appendFileSync(join(dir, ".git", "info", "exclude"), ".claude/\n");
+      // Nor are installed packages.
+      appendFileSync(join(dir, ".git", "info", "exclude"), ".claude/\nnode_modules/\n");
       git(dir, "add", "--all");
       git(dir, "commit", "--quiet", "--message", "fixture");
+      const fixtureCommit = git(dir, "rev-parse", "HEAD").trim();
       if (withSkill) cpSync(skillDir, join(dir, ".claude", "skills", "trodden"), { recursive: true });
 
       const stdout = await runAgent({ dir, prompt: task.prompt, model });
       git(dir, "add", "--all");
-      return { diff: git(dir, "diff", "--cached", "HEAD"), events: parseEvents(stdout) };
+      // Compare with the fixture itself, so a change the agent committed still counts.
+      const diff = git(dir, "diff", "--cached", fixtureCommit);
+      if (diff.length > MAX_DIFF_CHARS) {
+        throw new Error(`the change is too large to judge (${diff.length} characters)`);
+      }
+      return { diff, events: parseEvents(stdout) };
     },
   };
 }

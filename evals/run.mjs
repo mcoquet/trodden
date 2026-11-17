@@ -10,6 +10,15 @@ import { loadLibrary } from "../skills/trodden/scripts/lib/library.mjs";
 import { detectScriptUse } from "./lib/harness.mjs";
 import { judge } from "./lib/judge.mjs";
 import { mustRules, summarise, renderSummary } from "./lib/score.mjs";
+
+// Called after every case in a real run, so a run that is interrupted
+// keeps what it has already paid for.
+function progressWriter(out, meta) {
+  return (c, cases) => {
+    process.stderr.write(`${c.task} ${c.model} ${c.withSkill ? "with skill" : "without skill"} run ${c.run}: ${c.status}\n`);
+    writeResults(out, { cases, summary: summarise(cases), meta: { ...meta, complete: false } });
+  };
+}
 import { loadTasks } from "./lib/tasks.mjs";
 
 export async function runEval({ tasks, models, judgeModel, harness, complete, lib, runs = 1, onCase = () => {} }) {
@@ -42,7 +51,7 @@ export async function runEval({ tasks, models, judgeModel, harness, complete, li
             result.error = err.message;
           }
           cases.push(result);
-          onCase(result);
+          onCase(result, cases);
         }
       }
     }
@@ -105,6 +114,7 @@ async function cli(argv) {
     // not a git checkout; the results say so
   }
 
+  const meta = { models, judge: args.judge, runs, date, libraryCommit };
   const result = await runEval({
     tasks,
     models,
@@ -113,9 +123,9 @@ async function cli(argv) {
     complete: claudeComplete,
     lib: loadLibrary(join(skillDir, "library")),
     runs,
-    onCase: (c) => process.stderr.write(`${c.task} ${c.model} ${c.withSkill ? "with skill" : "without skill"} run ${c.run}: ${c.status}\n`),
+    onCase: progressWriter(out, meta),
   });
-  writeResults(out, { ...result, meta: { models, judge: args.judge, runs, date, libraryCommit } });
+  writeResults(out, { ...result, meta: { ...meta, complete: true } });
   process.stdout.write(`${renderSummary(result.summary)}\nResults written to ${out}\n`);
   return 0;
 }

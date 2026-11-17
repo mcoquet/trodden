@@ -271,3 +271,22 @@ test("orphaned-source: a registry entry nobody cites", () => {
   const [finding] = expectRule({ ...validFiles(), "sources.yaml": sources }, "orphaned-source", ["sources.yaml"]);
   assert.match(finding.message, /src-c/);
 });
+
+test("uncited-must: catches a MUST whatever list marker it uses", () => {
+  const files = withOne({ rules: ["MUST do A. [src-a]"] });
+  files["core/alpha/one.md"] = files["core/alpha/one.md"].replace("- MUST do A. [src-a]", "- MUST do A. [src-a]\n1. MUST numbered.\n+ MUST plus.\n\nMUST paragraph.");
+  expectRule(files, "uncited-must", ["core/alpha/one.md", "core/alpha/one.md", "core/alpha/one.md"]);
+});
+
+test("the example in format.md is itself a valid entry", () => {
+  const format = readFileSync(new URL("../skills/trodden/references/format.md", import.meta.url), "utf8");
+  const example = format.match(/````text\n(---\n[\s\S]*?)````/)[1];
+  const sources = "owasp-logging:\n  title: T\n  url: U\n";
+  const files = {
+    "sources.yaml": sources,
+    "core/logging/_concern.md": concernText({ id: "core/logging" }),
+    "core/logging/structured.md": example,
+  };
+  const { findings } = run(files);
+  assert.deepEqual(findings.filter((f) => f.severity !== "info"), []);
+});

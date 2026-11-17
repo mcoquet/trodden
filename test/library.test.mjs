@@ -138,3 +138,10 @@ test("terminates on a requires loop", () => {
   const r = resolve(load(files), ["core/alpha/one"]);
   assert.deepEqual(ids(r.entries), ["core/alpha/one", "core/alpha/two"]);
 });
+
+test("leaves out an entry whose summary is not a line of text", () => {
+  const files = validFiles();
+  files["core/alpha/two.md"] = files["core/alpha/two.md"].replace("summary: Variant two.", "summary: [draft]");
+  const lib = load(files);
+  assert.deepEqual([...lib.entries.keys()], ["core/alpha", "core/alpha/one"]);
+});

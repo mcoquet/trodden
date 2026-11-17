@@ -765,3 +765,39 @@ What was run and when, the headline numbers, and what they say about the two que
 - [ ] **Step 6: Report to Miguel and stop**
 
 If adherence with the skill is not higher than without, or the agent rarely calls the script, say so plainly. Revising the format or `SKILL.md` is a new decision for Miguel, not part of this plan.
+
+## Rulings and deferred minors
+
+Recorded during execution of Tasks 1 to 14 (2026-11-16 and 17). Task 15 has not been run.
+
+### Rulings
+
+- Task 7: Ruling: one mistake yields one finding — a file with unreadable frontmatter gets only `frontmatter` (no id-path), a misplaced .md gets only `id-path`, a missing registry gets one `unknown-source` on sources.yaml (none per entry), and a relationship target 'exists' if its file exists even when that file is itself broken — avoids cascades that bury the real cause — cost if wrong: a second real problem in the same file shows only after the first is fixed.
+- Task 7: Ruling: findings tie-break by the rules' spec order, not alphabetically ('then rule' in the plan) — keeps errors ahead of info on the same line — cost if wrong: none beyond ordering.
+- Task 9: Ruling: wrote SKILL.md without loading superpowers:writing-skills or running subagent pressure tests (plan step 3 names that skill) — the eval in Task 15 is the behavioural test of this skill, and its guidance (description says when to use, body short) is applied and test-checked — cost if wrong: the skill triggers less reliably than it could; the eval will show it.
+- Task 9: Ruling: SKILL.md refers to the script as scripts/trodden.mjs 'in this skill's directory' rather than Claude Code's ${CLAUDE_SKILL_DIR} — that variable is only substituted by Claude Code and the skill must work in any harness — cost if wrong: an agent whose harness does not state the skill directory may need one extra step to find the script.
+- Task 10: Ruling: corrected two rules in core/logging/structured while reading sources — "JSON, one event per line [otel-semconv]" became "structured, machine-parseable format [owasp-logging]" plus an uncited SHOULD for JSON lines; "timestamp, severity and trace id on every event [otel-semconv]" became a MUST for when/where/who/what [owasp-logging] plus a SHOULD for severity and a request identifier — the OpenTelemetry pages do not state either requirement (they mark those fields optional), and I had flagged this to Miguel at the Task 3 review — cost if wrong: the logging entry is slightly weaker than Miguel's original wording; revert is a two-line edit.
+- Task 10: Ruling: the entry-parser test read the live logging entry, so editing library content broke it; it now reads a frozen copy in test/fixtures/structured-entry.md — tests of the parser should not depend on library content — cost if wrong: none.
+- Task 12: Ruling: the real harness takes an injectable `runAgent` so workspace set-up and diff collection are tested without credentials (plan interface was claudeCodeHarness({ skillDir, fixturesDir })) — cost if wrong: none; default behaviour is unchanged.
+- Task 12: Ruling: Summary shape is { overall, models, rows } where rows are per task and model, and only `overall` carries harnessErrors — the plan named Summary without defining it — cost if wrong: results.json consumers adapt to field names.
+- Task 12: Ruling: the agent run allows the tools Bash, Read, Edit, Write, Glob, Grep, Skill under acceptEdits, with --setting-sources project and --strict-mcp-config — verified with one real small call: the trodden skill was visible, no user plugins or MCP servers loaded, detectScriptUse matched the real event shape, and the judge call returned text — cost if wrong: the with/without comparison is contaminated by the runner's own environment.
+- Task 14: Ruling: the as-built diagrams differ from the spec's proposals — the eval reaches models only through the coding agent's command line (no direct "Model providers" link), a Maintainer person starts eval runs, and the domain model shows Concern→Variant as 0..* and `see also` between any entries — they describe what was built — cost if wrong: none; docs follow code.
+- Final: Ruling: reversed the Task 9 ruling — SKILL.md now writes commands with ${CLAUDE_SKILL_DIR} and explains the variable in one sentence — Claude Code substitutes the real path, and any other agent can read the sentence; a bare relative path fails from the project directory — cost if wrong: an agent in another harness has to substitute the path itself.
+- Final: Ruling: core/config/environment — narrowed "MUST read those values from environment variables" to values that are not secrets, made the secret-store SHOULD say to fall back to the environment where no store exists, and removed two SHOULDs (least privilege and rotation: not checkable in a code change; "could be made public": restates the hard-coding MUST NOT) — the two sources disagree on secrets and a MUST must not contradict a SHOULD in the same entry — cost if wrong: Miguel may prefer a separate secret-store variant, which the spec's "variants, not winners" principle would favour once someone writes it.
+- Final: Ruling: reviewer's "Declined to judge" items — source support for rules (checked by the executor against fetched pages in Tasks 10–11; stands), eval isolation flags (verified by one real call in Task 12; stands), plugin install in Claude Code (validated with `claude plugin validate`, not installed; stands, unverified end to end), CC BY 4.0 entries citing CC BY-SA OWASP pages (rules are in our own words; legal question left to Miguel), sources.yaml being a directory, `__proto__` as a key, inline triple-backtick lines, Windows, global git config, eval design scope — none becomes a finding — cost if wrong: a first Windows user or an unusual git setup hits an untested path.
+
+### Deferred minors
+
+- a value that starts with [ and ends with ] always parses as a list, so a summary like "[Draft] x [v2]" is misread and reported as missing
+- quote handling is thin — inner quotes, quoted commas in lists, single quotes and trailing # comments are taken literally
+- a UTF-8 byte-order mark at the start of sources.yaml is reported as "unexpected indentation"
+- an unclosed code fence is reported only as missing sections
+- a leftover "(planned)" on a target that now exists is info, though get then does not expand that requires
+- empty sections and concerns with no variants are not linted; format.md says a concern has one or more variants, the domain model says nothing enforces it
+- unknown-source findings always point at line 1
+- a scalar registry entry shows as "(not in the source registry)" in get
+- an unexpected exception exits 1, the code documented for lint errors
+- --json on lint and --format on list are silently ignored; --format=text is rejected; "list core/" with a trailing slash is an unknown id
+- an empty entry file yields one frontmatter finding plus six section-order findings
+- logging/structured — "where" and "who" in the when/where/who/what MUST are loosely checkable; a SHOULD names OpenTelemetry; the concern's Out of scope points at an "observability" concern that does not exist
+- eval temp directories are never removed

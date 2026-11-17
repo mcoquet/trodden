@@ -101,14 +101,19 @@ export function parseEntry(text) {
       continue;
     }
 
-    const item = line.match(/^[-*]\s+(.*\S)\s*$/);
-    if (item && section) {
+    // A list item under any marker, at any indent. In the Rules section a
+    // plain line counts too, so that no rule escapes the linter.
+    const item = line.match(/^\s*(?:[-*+]|\d+[.)])\s+(.*\S)\s*$/);
+    if (line.trim() === "" || !section) {
+      lastItem = null;
+    } else if (item) {
       lastItem = { section: section.heading, text: item[1], line: i + 1 };
       items.push(lastItem);
-    } else if (lastItem && /^\s+\S/.test(line)) {
+    } else if (lastItem) {
       lastItem.text += ` ${line.trim()}`;
-    } else {
-      lastItem = null;
+    } else if (section.heading === "Rules") {
+      lastItem = { section: section.heading, text: line.trim(), line: i + 1 };
+      items.push(lastItem);
     }
   }
 

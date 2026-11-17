@@ -28,3 +28,10 @@ test("the skill tells the agent to list and then get", () => {
   assert.match(body, /trodden\.mjs list/);
   assert.match(body, /trodden\.mjs get/);
 });
+
+test("every command the skill shows can be run from any directory", () => {
+  const lines = body.split("\n").filter((line) => line.includes("trodden.mjs") && line.trim().startsWith("node "));
+  assert.ok(lines.length >= 4);
+  for (const line of lines) assert.ok(line.includes("node ${CLAUDE_SKILL_DIR}/scripts/trodden.mjs "), line);
+  assert.match(body, /\$\{CLAUDE_SKILL_DIR\}[^\n]*(directory|folder)/);
+});

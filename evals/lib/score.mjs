@@ -39,7 +39,12 @@ export function summarise(cases) {
   const models = unique(cases.map((c) => c.model));
   const tasks = unique(cases.map((c) => c.task));
   return {
-    overall: { ...row(cases), harnessErrors: cases.filter((c) => c.status === "harness-error").length },
+    overall: {
+      ...row(cases),
+      harnessErrors: cases.filter((c) => c.status === "harness-error").length,
+      // cases where the judge gave no usable verdict at all
+      judgeErrors: cases.filter((c) => c.verdicts.length > 0 && c.verdicts.every((v) => v.verdict === "error")).length,
+    },
     models: Object.fromEntries(models.map((model) => [model, row(cases.filter((c) => c.model === model))])),
     rows: tasks.flatMap((task) =>
       models
@@ -66,7 +71,7 @@ export function renderSummary(summary) {
     ...Object.entries(summary.models).map(([model, r]) => `| All tasks | ${model} | ${cells(r)} |`),
     `| Overall | | ${cells(summary.overall)} |`,
     "",
-    `${summary.overall.cases} cases, ${summary.overall.harnessErrors} of them harness errors.`,
+    `${summary.overall.cases} cases. ${summary.overall.harnessErrors} failed in the harness and ${summary.overall.judgeErrors} could not be judged; both are left out of the numbers.`,
     "",
     "Adherence is the share of applicable MUST rules the change follows. \"Called the script\" is the share of with-skill cases in which the agent ran the query script.",
   ];

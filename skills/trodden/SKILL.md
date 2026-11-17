@@ -8,19 +8,19 @@ A library of sourced engineering practices. Look up the relevant entries before 
 
 ## Look it up
 
-The query script is `scripts/trodden.mjs` in this skill's directory. Run it with `node`.
+The query script ships with this skill. In the commands below, `${CLAUDE_SKILL_DIR}` is this skill's directory: the folder that holds this file. If your harness has not already replaced it with a path, replace it yourself.
 
 1. See what the library covers:
 
    ```
-   node scripts/trodden.mjs list
+   node ${CLAUDE_SKILL_DIR}/scripts/trodden.mjs list
    ```
 
 2. Fetch every entry that applies to the task. A concern explains the forces and lists its variants with when each applies; a variant holds the rules.
 
    ```
-   node scripts/trodden.mjs get core/logging
-   node scripts/trodden.mjs get core/logging/structured
+   node ${CLAUDE_SKILL_DIR}/scripts/trodden.mjs get core/logging
+   node ${CLAUDE_SKILL_DIR}/scripts/trodden.mjs get core/logging/structured
    ```
 
    `get` also returns the entries a variant requires, and the sources behind the rules.
@@ -43,4 +43,9 @@ When you finish, name the entries you consulted and any rule you did not follow,
 
 ## Writing entries
 
-To add to the library, read the format with `node scripts/trodden.mjs spec` and check your work with `node scripts/trodden.mjs lint --format text`.
+To add to the library, read the format and check your work:
+
+```
+node ${CLAUDE_SKILL_DIR}/scripts/trodden.mjs spec
+node ${CLAUDE_SKILL_DIR}/scripts/trodden.mjs lint --format text
+```

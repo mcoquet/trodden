@@ -120,3 +120,10 @@ test("the shipped tasks are well formed and point at real variants and fixtures"
     for (const id of task.variants) assert.equal(real.entries.get(id)?.type, "variant", id);
   }
 });
+
+test("reports each case as it finishes, with everything so far", async () => {
+  const harness = stubHarness(() => ({ diff: "DIFF", events: [] }));
+  const sizes = [];
+  await runEval({ tasks, models: ["m1"], judgeModel: "j", harness, complete: passAll, lib, onCase: (c, soFar) => sizes.push(soFar.length) });
+  assert.deepEqual(sizes, [1, 2, 3, 4]);
+});

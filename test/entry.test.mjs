@@ -122,3 +122,27 @@ test("records the language of a code fence", () => {
 test("counts the words of the body, not the frontmatter", () => {
   assert.equal(parseEntry("---\nid: x\nsummary: one two three\n---\n# A title\n\nfour words right here\n").wordCount, 7);
 });
+
+test("reads rules written with other list markers, indented, or as plain lines", () => {
+  const e = parseEntry(variant("- MUST a. [a]\n1. MUST numbered.\n+ MUST plus.\n\n  - MUST indented.\n\nMUST paragraph.\n\nJust prose."));
+  assert.deepEqual(
+    e.rules.map((r) => [r.level, r.text]),
+    [
+      ["MUST", "MUST a. [a]"],
+      ["MUST", "MUST numbered."],
+      ["MUST", "MUST plus."],
+      ["MUST", "MUST indented."],
+      ["MUST", "MUST paragraph."],
+      [null, "Just prose."],
+    ],
+  );
+});
+
+test("joins a wrapped rule into one", () => {
+  const e = parseEntry(variant("- MUST do a long thing\n  that wraps. [a]\n- SHOULD b."));
+  assert.deepEqual(e.rules.map((r) => r.text), ["MUST do a long thing that wraps. [a]", "SHOULD b."]);
+});
+
+test("plain text in Related is not a relationship", () => {
+  assert.deepEqual(parseEntry(variant("- MUST a. [a]", "None.\n\nSome note.")).relationships, []);
+});

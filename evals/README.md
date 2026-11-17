@@ -34,7 +34,11 @@ Start with one task and one model, and read the diffs and the judge's reasons in
 
 Each case is one agent session. The number of sessions is tasks × models × 2 × runs: with three tasks, two models and one run, that is 12 sessions, plus up to 12 judge calls.
 
-The agent works unattended in a throwaway copy of the fixture, with permission to edit files and run shell commands there. It ignores your own Claude Code settings, skills and plugins, so both sides of the comparison start equal.
+The agent works unattended in a throwaway copy of the fixture, with permission to edit files and run shell commands. Nothing confines those commands to the copy: they run as you. Run the eval in a container or another disposable environment if that matters.
+
+The agent ignores your own Claude Code settings, skills and plugins, so both sides of the comparison start equal.
+
+Results are written after every case, so an interrupted run keeps what it has finished. `results.json` says `"complete": false` until the run ends.
 
 ## Reading the results
 

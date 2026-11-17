@@ -178,3 +178,29 @@ test("real library lints clean", () => {
   assert.equal(summary.errors, 0);
   assert.equal(summary.warnings, 0);
 });
+
+test("a variant with a malformed summary does not break get on its concern", () => {
+  const files = validFiles();
+  files["core/alpha/two.md"] = files["core/alpha/two.md"].replace("summary: Variant two.", "summary: [draft]");
+  const { code, out, err } = run("get", "core/alpha", "--library", makeLibrary(files));
+  assert.equal(code, 0);
+  assert.ok(out.includes("| core/alpha/one | Variant one. | When X. |"));
+  assert.match(err, /skipped core\/alpha\/two\.md: run lint/);
+});
+
+test("get says when an id exists but its entry cannot be loaded", () => {
+  const files = validFiles();
+  files["core/alpha/two.md"] = "# No frontmatter\n";
+  const { code, err } = run("get", "core/alpha/two", "--library", makeLibrary(files));
+  assert.equal(code, 2);
+  assert.match(err, /core\/alpha\/two\.md cannot be loaded/);
+  assert.match(err, /lint/);
+});
+
+test("get reports a required entry it could not include", () => {
+  const files = validFiles();
+  delete files["core/alpha/two.md"];
+  const { code, err } = run("get", "core/alpha/one", "--library", makeLibrary(files));
+  assert.equal(code, 0);
+  assert.match(err, /core\/alpha\/one requires core\/alpha\/two, which could not be loaded: run lint/);
+});

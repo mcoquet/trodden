@@ -36,7 +36,7 @@ function parseReply(reply, count) {
     return null;
   }
   if (!Array.isArray(items)) return null;
-  const byIndex = new Map(items.filter((item) => item && VERDICTS.has(item.verdict)).map((item) => [item.index, item]));
+  const byIndex = new Map(items.filter((item) => item && VERDICTS.has(item.verdict)).map((item) => [Number(item.index), item]));
   if (byIndex.size === 0) return null;
   return Array.from({ length: count }, (_, i) => byIndex.get(i + 1) ?? null);
 }
